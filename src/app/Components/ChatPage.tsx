@@ -15,6 +15,7 @@ interface ChatPageProps {
   persona: Persona;
   usageToken: string;
   scenarioId: string;
+  voiceId: string
 }
 
 function ChatPageContent({ persona }: { persona: Persona }) {
@@ -23,7 +24,8 @@ function ChatPageContent({ persona }: { persona: Persona }) {
 
 const SFW_LLM = "21892bb9-9809-4b6f-8c3e-e40093069f04"
 
-export function ChatPage({ persona, usageToken, scenarioId }: ChatPageProps) {
+
+export function ChatPage({ persona, usageToken, scenarioId , voiceId }: ChatPageProps) {
   return (
     <RealtimeSessionEngineProvider connectionOpts={{
         token: usageToken,
@@ -31,7 +33,8 @@ export function ChatPage({ persona, usageToken, scenarioId }: ChatPageProps) {
             generative: {
                 persona: persona.id,
                 scenario: scenarioId,
-                llm: SFW_LLM
+                llm: SFW_LLM,
+                voice_override: voiceId
             },
             general: {},
             input: { interruptable: true, parallel_listening: true },

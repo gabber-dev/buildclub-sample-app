@@ -4,6 +4,7 @@ import { useApi } from 'gabber-client-react';
 import { useState } from 'react';
 interface ScenarioSelectorProps {
   personaId: string;
+  voiceId: string | null;
   onBack: () => void;
 }
 
@@ -13,7 +14,7 @@ interface Scenario {
   description?: string;
 }
 
-export const ScenarioSelector = ({ personaId, onBack }: ScenarioSelectorProps) => {
+export const ScenarioSelector = ({ personaId, onBack, voiceId }: ScenarioSelectorProps) => {
   const router = useRouter();
   const { api } = useApi();
   const [scenarios, setScenarios] = useState<Scenario[]>([]);
@@ -21,7 +22,11 @@ export const ScenarioSelector = ({ personaId, onBack }: ScenarioSelectorProps) =
   const [error, setError] = useState<string | null>(null);
 
   const handleScenarioSelect = (scenarioId: string) => {
-    router.push(`/chat?personaId=${personaId}&scenarioId=${scenarioId}`);
+    if (!voiceId) {
+      console.error('No voice ID available');
+      return;
+    }
+    router.push(`/chat?personaId=${personaId}&scenarioId=${scenarioId}&voiceId=${voiceId}`);
   };
 
   useEffect(() => {

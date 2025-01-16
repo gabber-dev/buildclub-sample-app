@@ -1,12 +1,11 @@
-"use client"
-import React, { useState, useEffect } from 'react';
-import { useApi } from 'gabber-client-react';
-
+"use client";
+import React, { useState, useEffect } from "react";
+import { useApi } from "gabber-client-react";
 
 interface PersonaFormData {
   name: string;
   description: string;
-  gender: 'male' | 'female';
+  gender: "male" | "female";
   voiceId: string;
 }
 
@@ -18,23 +17,25 @@ interface Voice {
 export const PersonaCreator = ({ onComplete }: { onComplete: () => void }) => {
   const { api } = useApi();
   const [formData, setFormData] = useState<PersonaFormData>({
-    name: '',
-    description: '',
-    gender: 'male',
-    voiceId: ''
+    name: "",
+    description: "",
+    gender: "male",
+    voiceId: "",
   });
-  
+
   const [voices, setVoices] = useState<Voice[]>([]);
   const [isLoadingVoices, setIsLoadingVoices] = useState(true);
+  const [selectedVoice, setSelectedVoice] = useState<Voice | null>(null);
 
   useEffect(() => {
     const fetchVoices = async () => {
       try {
         setIsLoadingVoices(true);
         const response = await api.voice.listVoices();
+        console.log('Fetched voices:', response.data.values);
         setVoices(response.data.values || []);
       } catch (err) {
-        console.error('Error fetching voices:', err);
+        console.error("Error fetching voices:", err);
       } finally {
         setIsLoadingVoices(false);
       }
@@ -43,32 +44,59 @@ export const PersonaCreator = ({ onComplete }: { onComplete: () => void }) => {
     fetchVoices();
   }, [api]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await api.persona.createPersona({
-        name: formData.name,
-        description: formData.description,
-        gender: formData.gender,
-        voice: formData.voiceId
-      });
-      
-      onComplete();
-    } catch (err) {
-      console.error('Error creating persona:', err);
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    console.log('handleChange:', name, value);
+
+    if (name === "voice") {
+      const foundVoice = voices.find((voice) => voice.id === value);
+      console.log('Found voice:', foundVoice);
+      if (foundVoice) {
+        setSelectedVoice(foundVoice);
+        setFormData((prev) => {
+          const updated = { ...prev, voiceId: foundVoice.id };
+          console.log('Updated formData:', updated);
+          return updated;
+        });
+      }
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!selectedVoice) {
+      alert("Please select a voice before creating the persona.");
+      return;
+    }
+
+    try {
+      console.log('voice form', selectedVoice?.id);
+      await api.persona.createPersona({
+        name: formData.name,
+        description: formData.description || "",
+        gender: formData.gender || "male",
+        voice: selectedVoice.id,
+      });
+
+      onComplete();
+    } catch (err) {
+      console.error("Error creating persona:", err);
+    }
   };
 
   return (
     <div className="space-y-8">
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow space-y-6">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white p-6 rounded-lg shadow space-y-6"
+      >
         <h2 className="text-lg font-medium mb-4">Create Your Persona</h2>
-        
+
         <div>
           <label className="block text-sm font-medium text-gray-700">Name</label>
           <input
@@ -108,11 +136,14 @@ export const PersonaCreator = ({ onComplete }: { onComplete: () => void }) => {
 
         <div>
           <label className="block text-sm font-medium text-gray-700">Assign Voice</label>
+          <pre className="text-xs text-gray-500 mt-1">
+            {JSON.stringify({ selectedVoice, formDataVoiceId: formData.voiceId }, null, 2)}
+          </pre>
           {isLoadingVoices ? (
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
           ) : (
             <select
-              name="voiceId"
+              name="voice"
               value={formData.voiceId}
               onChange={handleChange}
               className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-black"
@@ -137,4 +168,4 @@ export const PersonaCreator = ({ onComplete }: { onComplete: () => void }) => {
       </form>
     </div>
   );
-}; 
+};

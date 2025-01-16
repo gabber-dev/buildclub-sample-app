@@ -11,6 +11,7 @@ interface Persona {
 
 export const PersonaSelector = ({ onCreateNew }: { onCreateNew: () => void }) => {
   const [selectedPersonaId, setSelectedPersonaId] = useState<string | null>(null);
+  const [selectedVoiceId, setSelectedVoiceId] = useState<string | null>(null);
   const [personas, setPersonas] = useState<Persona[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,8 +35,17 @@ export const PersonaSelector = ({ onCreateNew }: { onCreateNew: () => void }) =>
     fetchPersonas();
   }, [api]);
 
-  const handlePersonaSelect = (personaId: string) => {
+  const handlePersonaSelect = async (personaId: string) => {
+    const selectedPersona = personas.find(persona => persona.id === personaId);
     setSelectedPersonaId(personaId);
+    
+    try {
+      const response = await api.persona.getPersona(personaId);
+      setSelectedVoiceId(response.data.voice);
+    } catch (error) {
+      console.error('Error fetching persona details:', error);
+      setSelectedVoiceId(null);
+    }
   };
 
   if (isLoading) {
@@ -60,6 +70,7 @@ export const PersonaSelector = ({ onCreateNew }: { onCreateNew: () => void }) =>
         <ScenarioSelector 
           personaId={selectedPersonaId}
           onBack={() => setSelectedPersonaId(null)}
+          voiceId={selectedVoiceId}
         />
       ) : (
         <>

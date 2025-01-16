@@ -4,7 +4,7 @@ import { ChatPage } from "@/app/Components/ChatPage";
 export default async function Page({ 
   searchParams 
 }: { 
-  searchParams: { personaId: string; scenarioId: string }
+  searchParams: { personaId: string; scenarioId: string, voiceId: string }
 }) {
   const usageToken = await generateUserToken();
   
@@ -21,7 +21,7 @@ export default async function Page({
           name: "AI Assistant",
           description: "",
           gender: "female",
-          voiceId: "0b6c25ce-cc8d-4558-844e-4f61c00cc264"
+          voiceId: searchParams.voiceId
         }} 
         usageToken={usageToken.token}
         scenarioId={searchParams.scenarioId}
